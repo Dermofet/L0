@@ -92,5 +92,36 @@ docker compose -f ./dev/docker-compose.yml up -d --build
 
 Бэкэнд-приложение предоставляет следующие API-точки доступа:
 
-- `/orders`: Предоставляет HTML страницу с информацией о заказах.
-- `/orders/id/:id`: Предоставляет информацию о конкретном заказе по id. 
+- `GET /orders`: Предоставляет HTML страницу с информацией о заказах.
+- `GET /orders/id/:id`: Предоставляет информацию о конкретном заказе по id. 
+
+## Тестирование
+
+### Нагрузочные тесты
+Нагрузочные тесты были выполнены с помощью утилиты `wrk`:
+- Результаты тестирования эндпоинта `GET /orders`:
+```text
+Running 30s test @ http://localhost:8000/orders/id/Dz1X9TuoU5
+  12 threads and 400 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    12.30ms   12.05ms 274.52ms   92.95%
+    Req/Sec     2.95k   374.90     5.81k    74.92%
+  1054737 requests in 30.07s, 1.28GB read
+Requests/sec:  35077.92
+Transfer/sec:     43.62MB
+```
+- Результаты тестирования эндпоинта `GET /orders/id/Dz1X9TuoU5`:
+```text
+Running 30s test @ http://localhost:8000/orders
+  12 threads and 400 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     9.91ms    5.98ms  62.91ms   74.53%
+    Req/Sec     3.47k   363.40     7.86k    69.82%
+  1243037 requests in 30.10s, 229.98MB read
+Requests/sec:  41297.14
+Transfer/sec:      7.64MB
+```
+
+### Unit-тестирование приложения
+
+Тестирование приложения производилось с помощью модуля [`testing`](https://pkg.go.dev/testing) и [`gomock`](https://github.com/golang/mock). Были протестированы все интерфейсы

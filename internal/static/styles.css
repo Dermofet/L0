@@ -1,0 +1,53 @@
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+    margin: 0;
+    padding: 0;
+    /* Удалите или измените свойство display */
+    /* display: flex; */
+    /* justify-content: center; */
+    /* align-items: center; */
+    height: 100vh;
+}
+.container {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 80%;
+    max-width: 800px;
+    margin: auto; /* Добавлено для центрирования контейнера по горизонтали */
+}
+h1 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+h2 {
+    font-size: 20px;
+    color: #666;
+    margin-top: 20px;
+}
+h3 {
+    color: #666;
+}
+p {
+    font-size: 16px;
+    color: #777;
+    margin-bottom: 10px;
+}
+.section {
+    margin-bottom: 30px;
+}
+.details {
+    margin-left: 20px;
+    padding-left: 10px;
+    border-left: 2px solid #ccc;
+}
+.item-details {
+    margin-left: 20px;
+    padding-left: 10px;
+    border-left: 2px solid #ccc;
+    margin-bottom: 20px;
+}

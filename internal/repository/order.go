@@ -53,3 +53,13 @@ func (o *orderRepository) GetAll(ctx context.Context) ([]*entity.Order, error) {
 
 	return orders, nil
 }
+
+// Delete deletes an order.
+func (o *orderRepository) Delete(ctx context.Context, uid string) error {
+	err := o.source.DeleteOrder(ctx, uid)
+	if err != nil {
+		return fmt.Errorf("can't delete order: %w", err)
+	}
+
+	return nil
+}

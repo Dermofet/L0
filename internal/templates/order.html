@@ -7,10 +7,23 @@
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <h1>Order Details</h1>
-    <input type="text" id="orderIdInput" placeholder="Enter Order ID">
-    <button id="fetchOrderButton">Get Order Details</button>
-    <div id="orderDetails"></div>
+    <div class="container">
+        <div class="main-container">
+            <h1>Order Details</h1>
+            <div style="text-align: center;">
+                <input type="text" id="orderIdInput" placeholder="Enter Order ID" style="margin-bottom: 10px;">
+                <br>
+                <button id="fetchOrderButton" style="margin-right: 10px;">Get</button>
+                <button id="createOrderButton" style="margin-right: 10px;">Create</button>
+                <button id="deleteOrderButton">Delete</button>
+            </div>
+            <div id="orderDetails" style="margin-top: 20px;"></div>
+        </div>
+        <div class="saved-orders-container">
+            <h1>Saved Orders</h1>
+            <ul id="savedOrdersList"></ul>
+        </div>
+    </div>
     <script src="/static/order.js"></script>
 </body>
 </html>

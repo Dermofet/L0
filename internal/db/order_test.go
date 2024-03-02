@@ -1,9 +1,9 @@
 package db
 
 import (
+	"L0/internal/entity"
 	"context"
 	"fmt"
-	"L0/internal/entity"
 	"reflect"
 	"testing"
 	"time"
@@ -19,6 +19,137 @@ func MustParseTime(layout string, s string) time.Time {
 	}
 	return tt
 }
+
+// func Test_source_CreateOrder(t *testing.T) {
+// 	type fields struct {
+// 		db sqlmock.Sqlmock
+// 	}
+// 	type args struct {
+// 		ctx   context.Context
+// 		order *entity.Order
+// 	}
+// 	tests := []struct {
+// 		name    string
+// 		fields  fields
+// 		args    args
+// 		want    string
+// 		setup   func(f fields, a args)
+// 		wantErr bool
+// 	}{
+// 		{
+// 			name: "CreateOrder_Successful",
+// 			args: args{
+// 				ctx: context.Background(),
+// 				order: &entity.Order{
+// 					OrderUID:          "order_uid_1",
+// 					TrackNumber:       "track_number_1",
+// 					Entry:             "entry_1",
+// 					Locale:            "en",
+// 					InternalSignature: "",
+// 					CustomerID:        "customer_1",
+// 					DeliveryService:   "delivery_service_1",
+// 					Shardkey:          "shardkey_1",
+// 					SmID:              1,
+// 					DateCreated:       time.Now(),
+// 					OofShard:          "1",
+// 					Delivery: entity.Delivery{
+// 						Name:    "Test Name",
+// 						Phone:   "+1234567890",
+// 						Zip:     "12345",
+// 						City:    "City",
+// 						Address: "Address",
+// 						Region:  "Region",
+// 						Email:   "test@example.com",
+// 					},
+// 					Payment: entity.Payment{
+// 						Transaction:  "transaction_1",
+// 						Currency:     "USD",
+// 						Provider:     "provider_1",
+// 						Amount:       100,
+// 						PaymentDt:    int(time.Now().Unix()),
+// 						DeliveryCost: 10,
+// 						GoodsTotal:   90,
+// 						CustomFee:    0,
+// 					},
+// 					Items: []entity.Item{
+// 						{
+// 							ChrtID:      1,
+// 							TrackNumber: "track_number_1",
+// 							Price:       50,
+// 							Rid:         "rid_1",
+// 							Name:        "Item 1",
+// 							Sale:        0,
+// 							Size:        "S",
+// 							TotalPrice:  50,
+// 							NmID:        1,
+// 							Brand:       "Brand 1",
+// 							Status:      1,
+// 						},
+// 					},
+// 				},
+// 			},
+// 			want: "order_uid_1",
+// 			setup: func(f fields, a args) {
+// 				f.db.ExpectQuery("SELECT * FROM deliveries WHERE phone = $1").
+// 					WithArgs(a.order.Delivery.Phone).
+// 					WillReturnRows(sqlmock.NewRows([]string{"delivery_uid"}).AddRow("delivery_uid_1"))
+// 				f.db.ExpectQuery("SELECT * FROM payments WHERE transaction = $1").
+// 					WithArgs(a.order.Payment.Transaction).
+// 					WillReturnRows(sqlmock.NewRows([]string{"transaction"}).AddRow("transaction_1"))
+// 				f.db.ExpectQuery("SELECT * FROM items WHERE track_number = $1").
+// 					WithArgs(a.order.Items[0].TrackNumber).
+// 					WillReturnRows(sqlmock.NewRows([]string{"track_number"}).AddRow("track_number_1"))
+// 				f.db.ExpectQuery(`INSERT INTO orders
+// 					(order_uid, track_number, entry, delivery_uid, payment_transaction, locale, 
+// 					internal_signature, customer_id, delivery_service, shardkey, sm_id, 
+// 					date_created, oof_shard) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`).
+// 					WillReturnRows(sqlmock.NewRows([]string{"order_uid"}).AddRow("order_uid_1"))
+// 			},
+// 			wantErr: false,
+// 		},
+// 		{
+// 			name: "CreateOrder_DeliveryByPhoneError",
+// 			args: args{
+// 				ctx: context.Background(),
+// 				order: &entity.Order{
+// 					Delivery: entity.Delivery{
+// 						Phone: "+1234567890",
+// 					},
+// 				},
+// 			},
+// 			want:    "",
+// 			wantErr: true,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+// 			if err != nil {
+// 				t.Errorf("can't connect to database: %v", err)
+// 				return
+// 			}
+
+// 			f := fields{
+// 				db: mock,
+// 			}
+
+// 			s := &source{
+// 				db: sqlx.NewDb(db, "sqlmock"),
+// 			}
+
+// 			tt.setup(f, tt.args)
+
+// 			got, err := s.CreateOrder(tt.args.ctx, tt.args.order)
+// 			if (err != nil) != tt.wantErr {
+// 				t.Errorf("source.CreateOrder() error = %v, wantErr %v", err, tt.wantErr)
+// 				return
+// 			}
+// 			if got != tt.want {
+// 				t.Errorf("source.CreateOrder() = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }
 
 func Test_source_GetOrderByUid(t *testing.T) {
 	type fields struct {

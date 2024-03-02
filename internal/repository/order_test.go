@@ -1,10 +1,11 @@
 package repository
 
 import (
-	"context"
-	"errors"
 	"L0/internal/db"
 	"L0/internal/entity"
+	"context"
+	"errors"
+	"fmt"
 	reflect "reflect"
 	"testing"
 	"time"
@@ -18,6 +19,72 @@ func MustParseTime(layout string, s string) time.Time {
 		panic(err)
 	}
 	return tt
+}
+
+func TestOrderRepository_Create(t *testing.T) {
+	type fields struct {
+		source *db.MockOrderSource
+	}
+	type args struct {
+		ctx   context.Context
+		order *entity.Order
+	}
+	tests := []struct {
+		name    string
+		args    args
+		setup   func(args, fields)
+		wantID  string
+		wantErr bool
+	}{
+		{
+			name: "success",
+			args: args{
+				ctx:   context.Background(),
+				order: &entity.Order{},
+			},
+			setup: func(a args, f fields) {
+				f.source.EXPECT().CreateOrder(a.ctx, a.order).Return("generated_id", nil)
+			},
+			wantID:  "generated_id",
+			wantErr: false,
+		},
+		{
+			name: "fail: can't create order",
+			args: args{
+				ctx:   context.Background(),
+				order: &entity.Order{},
+			},
+			setup: func(a args, f fields) {
+				f.source.EXPECT().CreateOrder(a.ctx, a.order).Return("", errors.New("create error"))
+			},
+			wantID:  "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			f := fields{
+				source: db.NewMockOrderSource(ctrl),
+			}
+			repo := &orderRepository{
+				source: f.source,
+			}
+
+			tt.setup(tt.args, f)
+
+			gotID, err := repo.Create(tt.args.ctx, tt.args.order)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("orderRepository.Create() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotID != tt.wantID {
+				t.Errorf("orderRepository.Create() = %v, want %v", gotID, tt.wantID)
+			}
+		})
+	}
 }
 
 func Test_GetByUid(t *testing.T) {
@@ -175,6 +242,120 @@ func Test_GetByUid(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("userRepository.GetUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestOrderRepository_GetAll(t *testing.T) {
+	type fields struct {
+		source *db.MockOrderSource
+	}
+	tests := []struct {
+		name    string
+		setup   func(f fields)
+		want    []*entity.Order
+		wantErr bool
+	}{
+		{
+			name: "success",
+			setup: func(f fields) {
+				orders := []*entity.Order{
+					{OrderUID: "b563feb7b2b84b6test1"},
+					{OrderUID: "b563feb7b2b84b6test2"},
+				}
+				f.source.EXPECT().GetAllOrders(gomock.Any()).Return(orders, nil)
+			},
+			want:    []*entity.Order{{OrderUID: "b563feb7b2b84b6test1"}, {OrderUID: "b563feb7b2b84b6test2"}},
+			wantErr: false,
+		},
+		{
+			name: "fail: can't get orders",
+			setup: func(f fields) {
+				f.source.EXPECT().GetAllOrders(gomock.Any()).Return(nil, fmt.Errorf("some error"))
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			f := fields{
+				source: db.NewMockOrderSource(ctrl),
+			}
+			repo := NewOrderRepository(f.source)
+			tt.setup(f)
+
+			got, err := repo.GetAll(context.Background())
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetAll() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetAll() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestOrderRepository_Delete(t *testing.T) {
+	type fields struct {
+		source *db.MockOrderSource
+	}
+	type args struct {
+		ctx context.Context
+		uid string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		setup   func(args, fields)
+		wantErr bool
+	}{
+		{
+			name: "success",
+			args: args{
+				ctx: context.Background(),
+				uid: "test_uid",
+			},
+			setup: func(a args, f fields) {
+				f.source.EXPECT().DeleteOrder(a.ctx, a.uid).Return(nil)
+			},
+			wantErr: false,
+		},
+		{
+			name: "fail: can't delete order",
+			args: args{
+				ctx: context.Background(),
+				uid: "test_uid",
+			},
+			setup: func(a args, f fields) {
+				f.source.EXPECT().DeleteOrder(a.ctx, a.uid).Return(errors.New("delete error"))
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			f := fields{
+				source: db.NewMockOrderSource(ctrl),
+			}
+			repo := &orderRepository{
+				source: f.source,
+			}
+
+			tt.setup(tt.args, f)
+
+			err := repo.Delete(tt.args.ctx, tt.args.uid)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("orderRepository.Delete() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

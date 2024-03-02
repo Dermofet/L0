@@ -27,7 +27,8 @@ type Config struct {
 		Host      string `long:"nats_host" description:"Host Nats" env:"NATS_HOST" required:"true" default:"0.0.0.0"`
 		Port      int    `long:"nats_port" description:"Port Nats" env:"NATS_PORT" required:"true" default:"4222"`
 		ClusterID string `long:"nats_cluster_id" description:"Nats cluster id" env:"NATS_CLUSTER_ID" required:"true" default:"nats-cluster"`
-		ClientID  string `long:"nats_client_id" description:"Nats client id" env:"NATS_CLIENT_ID" required:"true" default:"nats-client"`
+		Client1ID string `long:"nats_client_1_id" description:"Nats client id" env:"NATS_CLIENT_1_ID" required:"true" default:"nats-client-1"`
+		Client2ID string `long:"nats_client_2_id" description:"Nats client id" env:"NATS_CLIENT_2_ID" required:"true" default:"nats-client-2"`
 		Subject   string `long:"nats_subject" description:"Nats subject" env:"NATS_SUBJECT" required:"true" default:"test-subject"`
 	}
 

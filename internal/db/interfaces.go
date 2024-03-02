@@ -7,6 +7,8 @@ import (
 	"context"
 )
 
+//go:generate mockgen -source=interfaces.go -destination=source_mock.go -package=db
+
 // OrderSource provides methods for working with orders in the database.
 type OrderSource interface {
 	// CreateOrder creates a new order in the database.
@@ -20,6 +22,11 @@ type OrderSource interface {
 	// GetAllOrders returns all orders from the database.
 	// It returns a list of orders and an error if the operation fails.
 	GetAllOrders(ctx context.Context) ([]*entity.Order, error)
+
+	// DeleteOrder deletes an order record from the database.
+	// It takes a context and an order UID as input parameters.
+	// Returns an error if the operation fails.
+	DeleteOrder(ctx context.Context, orderUID string) error
 }
 
 // DeliverySource provides methods for working with deliveries in the database.

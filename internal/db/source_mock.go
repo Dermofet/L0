@@ -50,6 +50,20 @@ func (mr *MockOrderSourceMockRecorder) CreateOrder(ctx, order interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrder", reflect.TypeOf((*MockOrderSource)(nil).CreateOrder), ctx, order)
 }
 
+// DeleteOrder mocks base method.
+func (m *MockOrderSource) DeleteOrder(ctx context.Context, orderUID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteOrder", ctx, orderUID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteOrder indicates an expected call of DeleteOrder.
+func (mr *MockOrderSourceMockRecorder) DeleteOrder(ctx, orderUID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOrder", reflect.TypeOf((*MockOrderSource)(nil).DeleteOrder), ctx, orderUID)
+}
+
 // GetAllOrders mocks base method.
 func (m *MockOrderSource) GetAllOrders(ctx context.Context) ([]*entity.Order, error) {
 	m.ctrl.T.Helper()

@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/nats-io/stan.go"
 	"go.uber.org/zap"
 )
 
@@ -21,7 +22,7 @@ type App struct {
 	dbConn     *sqlx.DB
 	logger     *zap.Logger
 	httpServer http.Server
-	cache      *cache.Cache
+	cache      cache.Cache
 }
 
 // NewApp creates a new instance of the application.
@@ -75,14 +76,25 @@ func (a *App) Start(ctx context.Context) {
 			}
 			wg.Done()
 		}()
+
 		addr := fmt.Sprintf("%s:%d", a.config.HttpServer.Host, a.config.HttpServer.Port)
-		a.httpServer = http.NewServer(addr, a.dbConn, logger, a.cache)
+		conn, err := stan.Connect(
+			a.config.Nats.ClusterID,
+			a.config.Nats.Client2ID,
+			stan.NatsURL(fmt.Sprintf("nats://%s:%d", a.config.Nats.Host, a.config.Nats.Port)),
+		)
+		if err != nil {
+			logger.Error("NATS connection error", zap.Error(err))
+			return
+		}
+		a.httpServer = http.NewServer(addr, a.dbConn, logger, a.cache, conn, a.config.Nats.Subject)
 		if a.httpServer == nil {
 			cancelApp()
 			logger.Fatal("can't create http server")
 			return
 		}
-		err := a.httpServer.Run(appCtx)
+
+		err = a.httpServer.Run(appCtx)
 		cancelApp()
 		if err != nil {
 			logger.Error("can't start http server", zap.Error(err))
@@ -104,13 +116,24 @@ func (a *App) Start(ctx context.Context) {
 	go func() {
 		defer wg.Done()
 
-		natsService := nats.NewNatsService(orderRepository, logger, a.cache)
+		conn, err := stan.Connect(
+			a.config.Nats.ClusterID,
+			a.config.Nats.Client1ID,
+			stan.NatsURL(fmt.Sprintf("nats://%s:%d", a.config.Nats.Host, a.config.Nats.Port)),
+		)
+		if err != nil {
+			logger.Error("NATS connection error", zap.Error(err))
+			return
+		}
+
+		natsService := nats.NewNatsService(
+			orderRepository,
+			a.cache,
+			conn,
+			a.config.Nats.Subject,
+		)
 		err = natsService.Subscribe(
 			context.Background(),
-			a.config.Nats.ClusterID,
-			a.config.Nats.ClientID,
-			a.config.Nats.Subject,
-			fmt.Sprintf("nats://%s:%d", a.config.Nats.Host, a.config.Nats.Port),
 		)
 		if err != nil {
 			a.logger.Error("NATS subscription error", zap.Error(err))

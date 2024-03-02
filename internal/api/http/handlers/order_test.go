@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"L0/internal/entity"
+	"L0/internal/usecase"
 	"context"
 	"encoding/json"
 	"fmt"
-	"L0/internal/entity"
-	"L0/internal/usecase"
 	"net/http"
 	"net/http/httptest"
 	reflect "reflect"
@@ -176,31 +176,28 @@ func TestOrderHandlers_GetByIdHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 			f := fields{
 				orderInteractor: usecase.NewMockOrderInteractor(ctrl),
 			}
-			u := &orderHandlers{
+			h := &orderHandlers{
 				interactor: f.orderInteractor,
 			}
 
-			gin.SetMode(gin.TestMode)
-			r := gin.Default()
-
-			r.GET("/orders/id/:uid", u.GetByIdHandler)
 			w := httptest.NewRecorder()
-			url := fmt.Sprintf("/orders/id/%s", tt.args.uid)
-			req, _ := http.NewRequest("GET", url, nil)
+			c, _ := gin.CreateTestContext(w)
+			c.Params = gin.Params{{Key: "uid", Value: tt.args.uid}}
 
 			tt.setup(tt.args, f)
 
-			r.ServeHTTP(w, req)
-			fmt.Printf("Code = %d\n", w.Code)
+			h.GetByIdHandler(c)
+
 			if w.Code != tt.wantCode {
 				t.Errorf("orderHandlers.GetOrderByUid() code = %v, wantCode %v", w.Code, tt.wantCode)
 				return
 			}
 
-			if w.Code != 200 {
+			if w.Code != http.StatusOK {
 				return
 			}
 
@@ -212,6 +209,138 @@ func TestOrderHandlers_GetByIdHandler(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(&got, tt.wantBody) {
+				t.Errorf("userInteractor.GetUser() = %v, want %v", &got, tt.wantBody)
+			}
+		})
+	}
+}
+
+func TestOrderHandlers_DeleteHandler(t *testing.T) {
+	type fields struct {
+		interactor *usecase.MockOrderInteractor
+	}
+	type args struct {
+		ctx context.Context
+		uid string
+	}
+	tests := []struct {
+		name     string
+		args     args
+		setup    func(f fields)
+		wantCode int
+	}{
+		{
+			name: "success",
+			args: args{
+				ctx: context.Background(),
+				uid: "b563feb7b2b84b6test",
+			},
+			wantCode: http.StatusNoContent,
+			setup: func(f fields) {
+				f.interactor.EXPECT().Delete(gomock.Any(), "b563feb7b2b84b6test").Return(nil)
+			},
+		},
+		{
+			name: "fail: can't delete order",
+			args: args{
+				ctx: context.Background(),
+				uid: "b563feb7b2b84b6test",
+			},
+			wantCode: http.StatusInternalServerError,
+			setup: func(f fields) {
+				f.interactor.EXPECT().Delete(gomock.Any(), "b563feb7b2b84b6test").Return(fmt.Errorf("some error"))
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			f := fields{
+				interactor: usecase.NewMockOrderInteractor(ctrl),
+			}
+			h := &orderHandlers{
+				interactor: f.interactor,
+			}
+			c, _ := gin.CreateTestContext(httptest.NewRecorder())
+			c.Params = gin.Params{{Key: "uid", Value: tt.args.uid}}
+
+			tt.setup(f)
+
+			h.DeleteHandler(c)
+
+			if c.Writer.Status() != tt.wantCode {
+				t.Errorf("DeleteHandler() code = %v, wantCode %v", c.Writer.Status(), tt.wantCode)
+			}
+		})
+	}
+}
+
+func TestOrderHandlers_GetAllHandler(t *testing.T) {
+	type fields struct {
+		interactor *usecase.MockOrderInteractor
+	}
+	tests := []struct {
+		name     string
+		setup    func(f fields)
+		wantCode int
+		wantBody interface{}
+	}{
+		{
+			name:     "success",
+			wantCode: http.StatusOK,
+			setup: func(f fields) {
+				orders := []*entity.Order{
+					{OrderUID: "b563feb7b2b84b6test1"},
+					{OrderUID: "b563feb7b2b84b6test2"},
+				}
+				f.interactor.EXPECT().GetAll(gomock.Any()).Return(orders, nil)
+			},
+			wantBody: []string{"b563feb7b2b84b6test1", "b563feb7b2b84b6test2"},
+		},
+		{
+			name:     "fail: can't get orders",
+			wantCode: http.StatusInternalServerError,
+			setup: func(f fields) {
+				f.interactor.EXPECT().GetAll(gomock.Any()).Return(nil, fmt.Errorf("some error"))
+			},
+			wantBody: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			f := fields{
+				interactor: usecase.NewMockOrderInteractor(ctrl),
+			}
+			h := &orderHandlers{
+				interactor: f.interactor,
+			}
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+
+			tt.setup(f)
+
+			h.GetAllHandler(c)
+
+			if w.Code != tt.wantCode {
+				t.Errorf("GetAllHandler() code = %v, wantCode %v", c.Writer.Status(), tt.wantCode)
+			}
+
+			if w.Code != http.StatusOK {
+				return
+			}
+
+			var got []string
+			fmt.Printf("body: %s\n", w.Body.String())
+			err := json.Unmarshal(w.Body.Bytes(), &got)
+			if err != nil {
+				t.Errorf("can't unmarshal body: %v", err)
+				return
+			}
+
+			if !reflect.DeepEqual(got, tt.wantBody) {
 				t.Errorf("userInteractor.GetUser() = %v, want %v", &got, tt.wantBody)
 			}
 		})

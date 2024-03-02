@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/nats-io/stan.go"
 	"go.uber.org/zap"
 
 	"L0/internal/cache"
@@ -43,14 +44,16 @@ func NewServer(
 	addr string,
 	db *sqlx.DB,
 	logger *zap.Logger,
-	cache *cache.Cache,
+	cache cache.Cache,
+	connect stan.Conn,
+	subject string,
 ) *server {
 	s := &server{
 		db:     db,
 		logger: logger,
 	}
 
-	r := NewRouter(db, logger, cache)
+	r := NewRouter(db, logger, cache, connect, subject)
 	err := r.Init()
 	if err != nil {
 		s.logger.Error("can't init router:", zap.Error(err))

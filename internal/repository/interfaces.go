@@ -6,6 +6,8 @@ import (
 	"context"
 )
 
+//go:generate mockgen -source=./interfaces.go -destination=repositories_mock.go -package=repository
+
 // OrderRepository defines the interface for order repositories.
 type OrderRepository interface {
 	// Create inserts a new order into the repository.
@@ -22,4 +24,9 @@ type OrderRepository interface {
 	// It takes a context as an input parameter.
 	// Returns a slice of order entities or an error if the operation fails.
 	GetAll(ctx context.Context) ([]*entity.Order, error)
+
+	// Delete deletes an order.
+	// It takes a context and a UID string as input parameters.
+	// Returns an error if the operation fails.
+	Delete(ctx context.Context, uid string) error
 }

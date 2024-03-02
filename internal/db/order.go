@@ -266,3 +266,25 @@ func (s *source) GetAllOrders(ctx context.Context) ([]*entity.Order, error) {
 	// Return the slice of order entities
 	return orders, nil
 }
+
+// DeleteOrder deletes an order record from the database.
+// It takes a context and an order UID as input parameters.
+// Returns an error if the operation fails.
+func (s *source) DeleteOrder(ctx context.Context, orderUID string) error {
+	// Create a database context with a timeout
+	dbCtx, dbCancel := context.WithTimeout(ctx, QueryTimeout)
+	defer dbCancel()
+
+	// Execute the SQL query to delete the order record from the database
+	_, err := s.db.ExecContext(
+		dbCtx,
+		"DELETE FROM orders WHERE order_uid = $1",
+		orderUID,
+	)
+	if err != nil {
+		return fmt.Errorf("can't execute query: %w", err)
+	}
+
+	// Return nil as the operation was successful
+	return nil
+}

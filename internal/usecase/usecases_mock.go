@@ -49,6 +49,35 @@ func (mr *MockOrderInteractorMockRecorder) Create(ctx, order interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockOrderInteractor)(nil).Create), ctx, order)
 }
 
+// Delete mocks base method.
+func (m *MockOrderInteractor) Delete(ctx context.Context, uid string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, uid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockOrderInteractorMockRecorder) Delete(ctx, uid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockOrderInteractor)(nil).Delete), ctx, uid)
+}
+
+// GetAll mocks base method.
+func (m *MockOrderInteractor) GetAll(ctx context.Context) ([]*entity.Order, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll", ctx)
+	ret0, _ := ret[0].([]*entity.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockOrderInteractorMockRecorder) GetAll(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockOrderInteractor)(nil).GetAll), ctx)
+}
+
 // GetByUid mocks base method.
 func (m *MockOrderInteractor) GetByUid(ctx context.Context, uid string) (*entity.Order, error) {
 	m.ctrl.T.Helper()

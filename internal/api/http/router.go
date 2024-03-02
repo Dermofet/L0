@@ -9,12 +9,14 @@ import (
 	"L0/internal/api/http/handlers"
 	"L0/internal/cache"
 	"L0/internal/db"
+	"L0/internal/nats"
 	"L0/internal/repository"
 	"L0/internal/usecase"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
+	"github.com/nats-io/stan.go"
 	"go.uber.org/zap"
 )
 
@@ -29,16 +31,20 @@ type router struct {
 	db       *sqlx.DB
 	handlers routerHandlers
 	logger   *zap.Logger
-	cache    *cache.Cache
+	cache    cache.Cache
+	connect  stan.Conn
+	subject  string
 }
 
 // NewRouter creates a new instance of HTTP router.
-func NewRouter(db *sqlx.DB, logger *zap.Logger, cache *cache.Cache) *router {
+func NewRouter(db *sqlx.DB, logger *zap.Logger, cache cache.Cache, connect stan.Conn, subject string) *router {
 	return &router{
-		router: gin.New(),
-		db:     db,
-		logger: logger,
-		cache:  cache,
+		router:  gin.New(),
+		db:      db,
+		logger:  logger,
+		cache:   cache,
+		connect: connect,
+		subject: subject,
 	}
 }
 
@@ -86,11 +92,20 @@ func (r *router) registerRoutes() error {
 	pgSource := db.NewSource(r.db)
 	orderRepository := repository.NewOrderRepository(pgSource)
 	orderInteractor := usecase.NewOrderInteractor(orderRepository, r.cache)
-	r.handlers.orderHandlers = handlers.NewOrderHandlers(orderInteractor)
+	natsService := nats.NewNatsService(
+		orderRepository,
+		r.cache,
+		r.connect,
+		r.subject,
+	)
+	r.handlers.orderHandlers = handlers.NewOrderHandlers(orderInteractor, natsService)
 
 	orderGroup := r.router.Group("/orders")
 	orderGroup.GET("/", r.handlers.orderHandlers.GetHTMLOrderHandler)
 	orderGroup.GET("/id/:uid", r.handlers.orderHandlers.GetByIdHandler)
+	orderGroup.GET("/all", r.handlers.orderHandlers.GetAllHandler)
+	orderGroup.POST("/new", r.handlers.orderHandlers.CreateHandler)
+	orderGroup.DELETE("/id/:uid", r.handlers.orderHandlers.DeleteHandler)
 
 	return nil
 }

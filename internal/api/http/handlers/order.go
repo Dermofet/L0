@@ -90,8 +90,7 @@ func (h *orderHandlers) GetAllHandler(c *gin.Context) {
 		return
 	}
 
-	var ids []string
-	// ids := make([]string, len(orders))
+	ids := make([]string, 0, len(orders))
 	for _, order := range orders {
 		ids = append(ids, order.OrderUID)
 	}

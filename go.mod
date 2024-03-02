@@ -19,7 +19,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/nats-io/nats-server/v2 v2.10.11 // indirect
 	github.com/nats-io/nats-streaming-server v0.25.6 // indirect
-	github.com/nats-io/nats.go v1.33.0 // indirect
+	github.com/nats-io/nats.go v1.33.0
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
